@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::{
     collections::{HashMap, LinkedList},
@@ -13,16 +11,31 @@ enum T {
     C(usize, usize, usize),
 }
 
-fn main() {
-    let n = 3;
-    let mut m = vec![
-        vec![2., 1., 3., 6.],
-        vec![4., 3., 8., 15.],
-        vec![6., 5., 16., 27.],
-    ];
+fn main() -> std::io::Result<()> {
+    let args: Vec<String> = std::env::args().collect();
+
+    let filename = &args[1];
+
+    let input_text = std::fs::read_to_string(filename)?;
+    let mut lines: Vec<&str> = input_text.lines().collect();
+    let n: usize = lines[0].parse().unwrap();
+    lines.remove(0);
+
+    let mut m: Vec<Vec<f64>> = lines.iter().map(|line| {
+        line
+            .split_ascii_whitespace()
+            .map(|col| col.parse().unwrap())
+            .collect()
+    }).collect();
+
+    let b = m.pop().unwrap();
+    for i in 0..n {
+        m[i].push(b[i]);
+    }
+
 
     if n < 2 {
-        return;
+        return Ok(());
     }
 
     // alfabet
@@ -165,6 +178,7 @@ fn main() {
         groups.push(&alphabet[start..end]);
     }
 
+    // współbieżny rozkład LU
     for group in groups {
         let (send, recv) = mpsc::channel();
         let l_g = group.len();
@@ -195,5 +209,16 @@ fn main() {
         }
     }
 
-    println!("{m:#?}");
+    println!("Decomposed:");
+    for row in m {
+        let left = &row[0..n].iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<_>>()
+            .join(" ");
+        let right = row[n];
+
+        println!("{left} | {right}");
+    }
+
+    Ok(())
 }
