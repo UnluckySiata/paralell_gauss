@@ -178,7 +178,8 @@ fn main() -> std::io::Result<()> {
         groups.push(&alphabet[start..end]);
     }
 
-    // współbieżny rozkład LU
+    // współbieżny rozkład LU 
+    // (obliczenia, wyniki są zbierane synchronicznie żeby zachować własność danych)
     for group in groups {
         let (send, recv) = mpsc::channel();
         let l_g = group.len();
